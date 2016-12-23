@@ -675,7 +675,7 @@ Void TGeometry::geometryMapping(TGeometry *pGeoSrc)
       ((TViewPort*)this)->setInvK();
     }
     //Brave:add
-    //braveLocation = (Pel **)xMalloc(Pel*,iNumMaps);
+    braveLocation = (Pel **)xMalloc(Pel*,iNumMaps);
     //Brave:add
 
     //generate the map;
@@ -684,7 +684,7 @@ Void TGeometry::geometryMapping(TGeometry *pGeoSrc)
       for(Int ch=0; ch<iNumMaps; ch++)
       {
         //Brave:add
-        //braveLocation[ch] = (Pel *)xMalloc(Pel,m_sVideoInfo.iFaceHeight >> getComponentScaleY((ComponentID)ch));
+        braveLocation[ch] = (Pel *)xMalloc(Pel,m_sVideoInfo.iFaceHeight >> getComponentScaleY((ComponentID)ch));
         //Brave:add
         ComponentID chId = (ComponentID)ch;
         Int iStridePW = getStride(chId);
@@ -695,11 +695,11 @@ Void TGeometry::geometryMapping(TGeometry *pGeoSrc)
         for(Int j=-nMarginY; j<iHeight+nMarginY; j++) 
         {
           //Brave:add
-          //int braveCount = 0;
-          //if ((j >= 0) && (j < iHeight))
-          //{
-          //  braveLocation[chId][j] = 0;
-          //}
+          int braveCount = 0;
+          if ((j >= 0) && (j < iHeight))
+          {
+            braveLocation[chId][j] = 0;
+          }
           //Brave:add
           for(Int i=-nMarginX; i<iWidth+nMarginX; i++)  
           {
@@ -723,18 +723,18 @@ Void TGeometry::geometryMapping(TGeometry *pGeoSrc)
               map2DTo3D(in, &pos3D);
               rotate3D(pos3D, pRot[0], pRot[1], pRot[2]);
               //Brave:add
-              //if((pos3D.x == 1) && (pos3D.y == 0) && (pos3D.z == 0))
-              //{
-              //  if (i <= iWidth / 2)
-              //  {
-              //    ++ braveCount;
-              //    if (j > 10 || j < iHeight / 2)
-              //    {
-              //      
-              //    }
-              //    braveLocation[chId][j] = braveCount;
-              //  }
-              //}
+              if((pos3D.x == 1) && (pos3D.y == 0) && (pos3D.z == 0))
+              {
+                if (i <= iWidth / 2)
+                {
+                  ++ braveCount;
+                  //if (j > 10 || j < iHeight / 2)
+                  //{
+                  //  
+                  //}
+                  braveLocation[chId][j] = braveCount;
+                }
+              }
               //Brave:add
               pGeoSrc->map3DTo2D(&pos3D, &pos3D);
 
@@ -810,19 +810,25 @@ Void TGeometry::geoConvert(TGeometry *pGeoDst)
           pGeoDst->m_pFacesOrig[fIdx][ch][iPos] = (sum + iOffset)>>iBDPrecision;
         }
       //Brave:add
-      //for(Int j=0; j<nHeight; j++) 
-      //{
-      //  int braveWidth = 2 * (nWidth / 2 - pGeoDst->braveLocation[chType][j]);
-      //  for(Int i=0; i<nWidth; i++) 
-      //  {
-      //    if (i < pGeoDst->braveLocation[chType][j])
-      //    {
-      //      Int iDPos = j * pGeoDst->getStride(chId) + i;
-      //      Int iSPos = j * pGeoDst->getStride(chId) + pGeoDst->braveLocation[chType][j] + braveWidth - (pGeoDst->braveLocation[chType][j] - i) % braveWidth;
-      //      pGeoDst->m_pFacesOrig[fIdx][ch][iDPos] = pGeoDst->m_pFacesOrig[fIdx][ch][iSPos];
-      //    }
-      //  }
-      //}
+      for(Int j=0; j<nHeight; j++) 
+      {
+        int braveWidth = 2 * (nWidth / 2 - pGeoDst->braveLocation[chType][j]);
+        for(Int i=0; i<nWidth; i++) 
+        {
+          if (i < pGeoDst->braveLocation[chType][j])
+          {
+            Int iDPos = j * pGeoDst->getStride(chId) + i;
+            Int iSPos = j * pGeoDst->getStride(chId) + pGeoDst->braveLocation[chType][j] + braveWidth - (pGeoDst->braveLocation[chType][j] - i) % braveWidth;
+            pGeoDst->m_pFacesOrig[fIdx][ch][iDPos] = pGeoDst->m_pFacesOrig[fIdx][ch][iSPos];
+          }
+          else if (i > pGeoDst->braveLocation[chType][j] + braveWidth)
+          {
+            Int iDPos = j * pGeoDst->getStride(chId) + i;
+            Int iSPos = j * pGeoDst->getStride(chId) + (i - pGeoDst->braveLocation[chType][j] - braveWidth) % braveWidth + pGeoDst->braveLocation[chType][j];
+            pGeoDst->m_pFacesOrig[fIdx][ch][iDPos] = pGeoDst->m_pFacesOrig[fIdx][ch][iSPos];
+          }
+        }
+      }
       //Brave:add
     }
   }
