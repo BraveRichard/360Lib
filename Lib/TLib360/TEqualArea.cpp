@@ -99,35 +99,35 @@ Void TEqualArea::map2DTo3D(SPos& IPosIn, SPos *pSPosOut)
   }
   else
   {//padding
-    //if (yaw < -S_PI)
-    //{
-    //  while (yaw < -S_PI)
-    //  {
-    //    yaw += S_PI * 2;
-    //  }
-    //}
-    //else if (yaw > S_PI)
-    //{
-    //  while(yaw > S_PI)
-    //  {
-    //    yaw -= S_PI * 2;
-    //  }
-    //}
-    //if(-S_PI_2 <= pitch && pitch <= S_PI_2 && -S_PI <= yaw && yaw <= S_PI)
-    //{
-    //  pSPosOut->x = (POSType)(scos(pitch)*scos(yaw));  
-    //  pSPosOut->y = (POSType)(ssin(pitch));  
-    //  pSPosOut->z = -(POSType)(scos(pitch)*ssin(yaw));
-    //}
-    //else
-    //{
+    if ((yaw < -S_PI) && (yaw > (-S_PI - 3 * S_PI_2 / 2)))
+    {
+      while (yaw < -S_PI)
+      {
+        yaw += S_PI * 2;
+      }
+    }
+    else if ((yaw > S_PI) && (yaw < (S_PI + 3 * S_PI_2 / 2)))
+    {
+      while(yaw > S_PI)
+      {
+        yaw -= S_PI * 2;
+      }
+    }
+    if(-S_PI_2 <= pitch && pitch <= S_PI_2 && -S_PI <= yaw && yaw <= S_PI)
+    {
+      pSPosOut->x = (POSType)(scos(pitch)*scos(yaw));  
+      pSPosOut->y = (POSType)(ssin(pitch));  
+      pSPosOut->z = -(POSType)(scos(pitch)*ssin(yaw));
+    }
+    else
+    {
 
-    //  std::cout << "pitch :" << pitch << "  yaw :" << yaw ;
-    //  std::cout << std::endl;
-    //  system("pause");
+      //std::cout << "pitch :" << pitch << "  yaw :" << yaw ;
+      //std::cout << std::endl;
+      //system("pause");
       pSPosOut->x = 1.0;
       pSPosOut->y = pSPosOut->z = 0.0;
-    //}
+    }
   }
 
 //Brave:add end
